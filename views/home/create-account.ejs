@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account</title>
+</head>
+<body>
+  <h1>Create Account</h1>
+
+  <% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <form action="/create-account" method="post">
+    <div>
+      <label for="username">Username</label><br>
+      <input id="username" type="text" name="username" required value="<%= values.username || '' %>">
+    </div>
+
+    <div>
+      <label for="email">Email</label><br>
+      <input id="email" type="email" name="email" required value="<%= values.email || '' %>">
+    </div>
+
+    <div>
+      <label for="password">Password</label><br>
+      <input id="password" type="password" name="password" required>
+    </div>
+
+    <div>
+      <label for="fullName">Full Name</label><br>
+      <input id="fullName" type="text" name="fullName" required value="<%= values.fullName || '' %>">
+    </div>
+
+    <div>
+      <label for="phoneNumber">Phone Number</label><br>
+      <input id="phoneNumber" type="text" name="phoneNumber" value="<%= values.phoneNumber || '' %>">
+    </div>
+
+    <div>
+      <label for="role">Role</label><br>
+      <select id="role" name="role">
+        <option value="user" <%= (values.role || "user") === "user" ? "selected" : "" %>>User</option>
+        <option value="admin" <%= values.role === "admin" ? "selected" : "" %>>Admin</option>
+      </select>
+    </div>
+
+    <button type="submit">Create</button>
+  </form>
+
+  <p><a href="/login">Back to login</a></p>
+</body>
+</html>
