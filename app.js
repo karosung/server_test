@@ -1,10 +1,19 @@
+"use strict";
+
+//module
 const express = require("express");
 const app = express();
 
-app.get('/', function(req, res){
-    res.send("김영석 바보");
-})
+const PORT = 8080;
 
-app.listen(8080, function () {
+//routing
+const home = require("./routes/home");
+
+app.set("views", "./views");
+app.set("view engine", "ejs");
+
+app.use("/", home); // use is to retister middleware
+
+app.listen(PORT, function () {
     console.log("listening on 8080");
 })
