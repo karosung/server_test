@@ -32,7 +32,7 @@ app.use(
 
 app.use("/", home); // use is to retister middleware
 
-const mongoLocalURI = process.env.MONGODB_LOCAL;
+const mongoLocalURI = process.env.MONGODB_URI;
 mongoose.connect(mongoLocalURI).then(function(){
     console.log("mongoose connected");
 }).catch(function(err){
