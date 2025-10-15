@@ -10,6 +10,7 @@
   <table border="1" cellpadding="6">
     <thead>
       <tr>
+        <th>Photo</th>
         <th>Username</th>
         <th>Email</th>
         <th>Full Name</th>
@@ -21,10 +22,17 @@
     </thead>
     <tbody>
       <% if (users.length === 0) { %>
-        <tr><td colspan="7">No users found.</td></tr>
+        <tr><td colspan="8">No users found.</td></tr>
       <% } else { %>
         <% users.forEach(user => { %>
           <tr>
+            <td>
+              <% if (user.avatarDataUrl) { %>
+                <img src="<%= user.avatarDataUrl %>" alt="<%= user.username %> avatar" width="80" height="80" style="object-fit: cover;">
+              <% } else { %>
+                -
+              <% } %>
+            </td>
             <td><%= user.username %></td>
             <td><%= user.email %></td>
             <td><%= user.fullName %></td>

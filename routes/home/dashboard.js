@@ -1,7 +1,5 @@
 "use strict";
 
-const fs = require("fs/promises");
-const path = require("path");
 const multer = require("multer");
 const sharp = require("sharp");
 const User = require("../../models/user");
@@ -18,9 +16,21 @@ const upload = multer({
 });
 
 const popFlash = (req) => {
+  if (!req.session) {
+    return undefined;
+  }
   const flash = req.session.flash;
   delete req.session.flash;
   return flash;
+};
+
+const buildAvatarDataUrl = (user) => {
+  if (!user?.avatarData || !user?.avatarContentType) {
+    return null;
+  }
+  return `data:${user.avatarContentType};base64,${user.avatarData.toString(
+    "base64"
+  )}`;
 };
 
 const renderDashboard = async (req, res, next) => {
@@ -38,7 +48,11 @@ const renderDashboard = async (req, res, next) => {
       return;
     }
 
-    res.render("home/dashboard", { user, flash: popFlash(req) });
+    res.render("home/dashboard", {
+      user,
+      avatarDataUrl: buildAvatarDataUrl(user),
+      flash: popFlash(req),
+    });
   } catch (err) {
     next(err);
   }
@@ -66,9 +80,13 @@ const uploadPhoto = (req, res, next) => {
       return res.redirect("/dashboard");
     }
 
-    let outputPath;
-
     try {
+      const processedBuffer = await sharp(req.file.buffer)
+        .rotate()
+        .resize(640, 640, { fit: "cover" })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+
       const user = await User.findById(req.session.user.id);
 
       if (!user) {
@@ -79,54 +97,16 @@ const uploadPhoto = (req, res, next) => {
         return res.redirect("/login");
       }
 
-      const avatarsDir = path.join(__dirname, "..", "..", "uploads", "avatars");
-      await fs.mkdir(avatarsDir, { recursive: true });
-
-      const filename = `${req.session.user.id}-${Date.now()}.jpg`;
-      outputPath = path.join(avatarsDir, filename);
-
-      await sharp(req.file.buffer)
-        .rotate()
-        .resize(640, 640, { fit: "cover" })
-        .jpeg({ quality: 80 })
-        .toFile(outputPath);
-
-      if (user.avatarPath) {
-        const oldPath = path.join(
-          __dirname,
-          "..",
-          "..",
-          user.avatarPath.replace(/^\//, "")
-        );
-        try {
-          await fs.unlink(oldPath);
-        } catch (unlinkErr) {
-          if (unlinkErr.code !== "ENOENT") {
-            throw unlinkErr;
-          }
-        }
-      }
-
-      const publicPath = `/uploads/avatars/${filename}`;
-      user.avatarPath = publicPath;
+      user.avatarData = processedBuffer;
+      user.avatarContentType = "image/jpeg";
       await user.save();
-      req.session.user.avatarPath = publicPath;
 
       req.session.flash = {
         type: "success",
-        message: "Profile photo updated.",
+        message: "\uD504\uB85C\uD544 \uC0AC\uC9C4\uC774 \uC5C5\uB370\uC774\uD2B8\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
       };
       res.redirect("/dashboard");
     } catch (uploadErr) {
-      if (outputPath) {
-        try {
-          await fs.unlink(outputPath);
-        } catch (cleanupErr) {
-          if (cleanupErr.code !== "ENOENT") {
-            return next(cleanupErr);
-          }
-        }
-      }
       next(uploadErr);
     }
   });

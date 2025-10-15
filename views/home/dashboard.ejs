@@ -14,16 +14,20 @@
 
   <section>
     <h2>Profile Photo</h2>
-    <% if (user.avatarPath) { %>
-      <img src="<%= user.avatarPath %>" alt="Profile photo" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc; display: block; margin-bottom: 1rem;">
+    <% if (avatarDataUrl) { %>
+      <img src="<%= avatarDataUrl %>" alt="Profile photo" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc; display: block; margin-bottom: 1rem;">
     <% } else { %>
-      <p>No photo uploaded yet.</p>
+      <p>&#xB4F1;&#xB85D;&#xB41C; &#xD504;&#xB85C;&#xD544; &#xC0AC;&#xC9C4;&#xC774; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.</p>
     <% } %>
     <form action="/dashboard/photo" method="post" enctype="multipart/form-data">
-      <label for="photo">Upload new photo (640x640)</label><br>
+      <label for="photo">&#xC0C8; &#xD504;&#xB85C;&#xD544; &#xC0AC;&#xC9C4; &#xC120;&#xD0DD; (640x640)</label><br>
       <input id="photo" type="file" name="photo" accept="image/*" required>
-      <button type="submit">Upload Photo</button>
+      <button type="submit">&#xD504;&#xB85C;&#xD544;&#xC5D0; &#xB4F1;&#xB85D;</button>
     </form>
+    <div id="photoPreviewContainer" style="display: none; margin-top: 1rem;">
+      <h3>&#xBBF8;&#xB9AC;&#xBCF4;&#xAE30;</h3>
+      <img id="photoPreview" src="" alt="Photo preview" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc;">
+    </div>
   </section>
 
   <section>
@@ -43,5 +47,43 @@
   </form>
 
   <p><a href="/admin">View all users</a></p>
+
+  <script>
+    (function () {
+      var fileInput = document.getElementById("photo");
+      var previewContainer = document.getElementById("photoPreviewContainer");
+      var previewImg = document.getElementById("photoPreview");
+      var objectUrl = null;
+
+      if (!fileInput || !previewContainer || !previewImg) {
+        return;
+      }
+
+      fileInput.addEventListener("change", function (event) {
+        var file = event.target.files && event.target.files[0];
+
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
+        }
+
+        if (!file) {
+          previewContainer.style.display = "none";
+          previewImg.removeAttribute("src");
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(file);
+        previewImg.src = objectUrl;
+        previewContainer.style.display = "block";
+      });
+
+      window.addEventListener("beforeunload", function () {
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
