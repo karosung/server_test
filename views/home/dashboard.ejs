@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h1>Welcome, <%= user.fullName %> (<%= user.username %>)</h1>
+
+  <section>
+    <h2>User Information</h2>
+    <ul>
+      <li><strong>Email:</strong> <%= user.email %></li>
+      <li><strong>Phone:</strong> <%= user.phoneNumber || "-" %></li>
+      <li><strong>Role:</strong> <%= user.role %></li>
+      <li><strong>Active:</strong> <%= user.isActive ? "Yes" : "No" %></li>
+      <li><strong>Created:</strong> <%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></li>
+      <li><strong>Updated:</strong> <%= user.updatedAt ? user.updatedAt.toISOString().slice(0, 10) : "-" %></li>
+    </ul>
+  </section>
+
+  <form action="/logout" method="post">
+    <button type="submit">Logout</button>
+  </form>
+
+  <p><a href="/admin">View all users</a></p>
+</body>
+</html>

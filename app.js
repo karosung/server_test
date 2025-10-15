@@ -5,6 +5,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
@@ -16,14 +17,20 @@ const PORT = process.env.PORT || 8080;
 app.set("views", "./views");
 app.set("view engine", "ejs");
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-app.use("/", home); // use is to retister middleware
-
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "change-this-secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use("/", home); // use is to retister middleware
 
 const mongoLocalURI = process.env.MONGODB_LOCAL;
 mongoose.connect(mongoLocalURI).then(function(){
