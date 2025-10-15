@@ -8,6 +8,24 @@
 <body>
   <h1>Welcome, <%= user.fullName %> (<%= user.username %>)</h1>
 
+  <% if (flash) { %>
+    <p style="color: <%= flash.type === 'error' ? 'red' : 'green' %>;"><%= flash.message %></p>
+  <% } %>
+
+  <section>
+    <h2>Profile Photo</h2>
+    <% if (user.avatarPath) { %>
+      <img src="<%= user.avatarPath %>" alt="Profile photo" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc; display: block; margin-bottom: 1rem;">
+    <% } else { %>
+      <p>No photo uploaded yet.</p>
+    <% } %>
+    <form action="/dashboard/photo" method="post" enctype="multipart/form-data">
+      <label for="photo">Upload new photo (640x640)</label><br>
+      <input id="photo" type="file" name="photo" accept="image/*" required>
+      <button type="submit">Upload Photo</button>
+    </form>
+  </section>
+
   <section>
     <h2>User Information</h2>
     <ul>

@@ -8,7 +8,7 @@ const {
     renderCreateAccountForm,
     handleCreateAccount,
 } = require("./createAccount");
-const { renderDashboard } = require("./dashboard");
+const { renderDashboard, uploadPhoto } = require("./dashboard");
 
 router.get("/", function(req, res){
     res.render("home/index");
@@ -20,6 +20,7 @@ router.get("/login", function(req, res){
 
 router.post("/login", handleLogin);
 router.get("/dashboard", renderDashboard);
+router.post("/dashboard/photo", uploadPhoto);
 router.post("/logout", handleLogout);
 
 router.get("/admin", renderAdmin);

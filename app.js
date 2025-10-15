@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const session = require("express-session");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -29,6 +30,8 @@ app.use(
     saveUninitialized: false,
   })
 );
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/", home); // use is to retister middleware
 
