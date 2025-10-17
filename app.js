@@ -32,6 +32,13 @@ app.use(
   })
 );
 
+app.use(function (req, res, next) {
+  const isAuthenticated = Boolean(req.session && req.session.user);
+  res.locals.isAuthenticated = isAuthenticated;
+  res.locals.homeUrl = isAuthenticated ? "/dashboard" : "/login";
+  next();
+});
+
 app.use("/", home); // use is to retister middleware
 
 const mongoLocalURI = process.env.MONGODB_URI;
