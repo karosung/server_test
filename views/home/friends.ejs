@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friends</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="card section-card">
+      <header class="page-header">
+        <h1>Your Friends</h1>
+        <p class="muted">Stay connected with the people you care about.</p>
+      </header>
+      <div class="actions">
+        <a class="btn link-button" href="/users/search">Add more friends</a>
+        <a class="btn link-button" href="/dashboard">Back to dashboard</a>
+      </div>
+    </section>
+
+    <section class="card section-card">
+      <% if (friends.length === 0) { %>
+        <p class="muted">You haven't added any friends yet. Search for people and start building your list.</p>
+      <% } else { %>
+        <div class="search-grid">
+          <% friends.forEach(function(friend) { %>
+            <article class="user-card">
+              <div class="user-card-header">
+                <% if (friend.avatarDataUrl) { %>
+                  <img src="<%= friend.avatarDataUrl %>" alt="<%= friend.username %> avatar" class="user-card-avatar">
+                <% } else { %>
+                  <div class="user-card-avatar placeholder">
+                    <span><%= (friend.fullName || friend.username || "?").slice(0, 1).toUpperCase() %></span>
+                  </div>
+                <% } %>
+                <div class="user-card-meta">
+                  <h3><%= friend.fullName || friend.username || "Unnamed user" %></h3>
+                  <p class="muted">@<%= friend.username %></p>
+                </div>
+              </div>
+              <dl class="user-card-details">
+                <div>
+                  <dt>Email</dt>
+                  <dd><%= friend.email %></dd>
+                </div>
+                <div>
+                  <dt>Role</dt>
+                  <dd><span class="badge"><%= friend.role %></span></dd>
+                </div>
+                <div>
+                  <dt>Active</dt>
+                  <dd><%= friend.isActive ? "Yes" : "No" %></dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd><%= friend.phoneNumber || "-" %></dd>
+                </div>
+                <div>
+                  <dt>Added on</dt>
+                  <dd><%= friend.createdAt ? friend.createdAt.toISOString().slice(0, 10) : "-" %></dd>
+                </div>
+              </dl>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

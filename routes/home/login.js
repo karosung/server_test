@@ -4,19 +4,19 @@ const crypto = require("crypto");
 const User = require("../../models/user");
 
 const handleLogin = async (req, res, next) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
+  if (!email || !password) {
     return res.status(400).render("home/login", {
-      error: "Username and password are required.",
+      error: "Email and password are required.",
     });
   }
 
   try {
-    const user = await User.findOne({ username }).lean();
+    const user = await User.findOne({ email }).lean();
     if (!user) {
       return res.status(401).render("home/login", {
-        error: "Invalid username or password.",
+        error: "Invalid email or password.",
       });
     }
 
@@ -27,7 +27,7 @@ const handleLogin = async (req, res, next) => {
 
     if (user.passwordHash !== passwordHash) {
       return res.status(401).render("home/login", {
-        error: "Invalid username or password.",
+        error: "Invalid email or password.",
       });
     }
 

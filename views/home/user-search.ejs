@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Search</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="card section-card">
+      <header class="page-header">
+        <h1>Find Users</h1>
+        <p class="muted">Search by username or email to quickly surface account details.</p>
+      </header>
+
+      <form class="search-form" action="/users/search" method="get">
+        <div class="search-row">
+          <input
+            class="search-input"
+            type="search"
+            name="q"
+            placeholder="Search by username or email..."
+            value="<%= query %>"
+            required
+          >
+          <button type="submit">Search</button>
+        </div>
+        <p class="muted small">Tip: partial matches work too.</p>
+      </form>
+    </section>
+
+    <section class="card section-card">
+      <h2>Results</h2>
+
+      <% if (flash) { %>
+        <p class="message <%= flash.type === 'error' ? 'error' : 'success' %>"><%= flash.message %></p>
+      <% } %>
+
+      <% if (!hasSearched) { %>
+        <p class="muted">Start typing above to explore users in the system.</p>
+      <% } else if (users.length === 0) { %>
+        <p class="message error">No users matched "<%= query %>". Try a different email or username.</p>
+      <% } else { %>
+        <div class="search-grid">
+          <% users.forEach(function(user) { %>
+            <article class="user-card">
+              <div class="user-card-header">
+                <% if (user.avatarDataUrl) { %>
+                  <img src="<%= user.avatarDataUrl %>" alt="<%= user.username %> avatar" class="user-card-avatar">
+                <% } else { %>
+                  <div class="user-card-avatar placeholder">
+                    <span><%= (user.fullName || user.username || "?").slice(0, 1).toUpperCase() %></span>
+                  </div>
+                <% } %>
+                <div class="user-card-meta">
+                  <h3><%= user.fullName || user.username || "Unnamed user" %></h3>
+                  <p class="muted">@<%= user.username %></p>
+                </div>
+              </div>
+              <dl class="user-card-details">
+                <div>
+                  <dt>Email</dt>
+                  <dd><%= user.email %></dd>
+                </div>
+                <div>
+                  <dt>Role</dt>
+                  <dd><span class="badge"><%= user.role %></span></dd>
+                </div>
+                <div>
+                  <dt>Active</dt>
+                  <dd><%= user.isActive ? "Yes" : "No" %></dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd><%= user.phoneNumber || "-" %></dd>
+                </div>
+                <div>
+                  <dt>Created</dt>
+                  <dd><%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></dd>
+                </div>
+                <div>
+                  <dt>Updated</dt>
+                  <dd><%= user.updatedAt ? user.updatedAt.toISOString().slice(0, 10) : "-" %></dd>
+                </div>
+              </dl>
+              <div class="user-card-actions">
+                <% if (user.isSelf) { %>
+                  <span class="badge neutral">This is you</span>
+                <% } else if (user.isFriend) { %>
+                  <span class="badge success">Already friends</span>
+                <% } else { %>
+                  <form class="inline-form" action="/users/search/add" method="post">
+                    <input type="hidden" name="friendId" value="<%= user._id %>">
+                    <input type="hidden" name="q" value="<%= query %>">
+                    <button type="submit" class="btn btn-compact">Add friend</button>
+                  </form>
+                <% } %>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>
