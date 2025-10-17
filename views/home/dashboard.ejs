@@ -4,49 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <h1>Welcome, <%= user.fullName %> (<%= user.username %>)</h1>
+  <main class="app-shell">
+    <section class="card section-card">
+      <header class="page-header">
+        <h1>Welcome, <%= user.fullName %> (<%= user.username %>)</h1>
+        <p class="muted">Keep your details polished and ready anywhere, anytime.</p>
+      </header>
 
-  <% if (flash) { %>
-    <p style="color: <%= flash.type === 'error' ? 'red' : 'green' %>;"><%= flash.message %></p>
-  <% } %>
+      <% if (flash) { %>
+        <p class="message <%= flash.type === 'error' ? 'error' : 'success' %>"><%= flash.message %></p>
+      <% } %>
+    </section>
 
-  <section>
-    <h2>Profile Photo</h2>
-    <% if (avatarDataUrl) { %>
-      <img src="<%= avatarDataUrl %>" alt="Profile photo" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc; display: block; margin-bottom: 1rem;">
-    <% } else { %>
-      <p>&#xB4F1;&#xB85D;&#xB41C; &#xD504;&#xB85C;&#xD544; &#xC0AC;&#xC9C4;&#xC774; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.</p>
-    <% } %>
-    <form action="/dashboard/photo" method="post" enctype="multipart/form-data">
-      <label for="photo">&#xC0C8; &#xD504;&#xB85C;&#xD544; &#xC0AC;&#xC9C4; &#xC120;&#xD0DD; (640x640)</label><br>
-      <input id="photo" type="file" name="photo" accept="image/*" required>
-      <button type="submit">&#xD504;&#xB85C;&#xD544;&#xC5D0; &#xB4F1;&#xB85D;</button>
-    </form>
-    <div id="photoPreviewContainer" style="display: none; margin-top: 1rem;">
-      <h3>&#xBBF8;&#xB9AC;&#xBCF4;&#xAE30;</h3>
-      <img id="photoPreview" src="" alt="Photo preview" width="320" height="320" style="object-fit: cover; border: 1px solid #ccc;">
-    </div>
-  </section>
+    <section class="card section-card">
+      <h2>Profile Photo</h2>
 
-  <section>
-    <h2>User Information</h2>
-    <ul>
-      <li><strong>Email:</strong> <%= user.email %></li>
-      <li><strong>Phone:</strong> <%= user.phoneNumber || "-" %></li>
-      <li><strong>Role:</strong> <%= user.role %></li>
-      <li><strong>Active:</strong> <%= user.isActive ? "Yes" : "No" %></li>
-      <li><strong>Created:</strong> <%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></li>
-      <li><strong>Updated:</strong> <%= user.updatedAt ? user.updatedAt.toISOString().slice(0, 10) : "-" %></li>
-    </ul>
-  </section>
+      <% if (avatarDataUrl) { %>
+        <img src="<%= avatarDataUrl %>" alt="Profile photo" class="profile-photo">
+      <% } else { %>
+        <p class="muted">No profile photo yet. Upload a square image (640×640) for a crisp display.</p>
+      <% } %>
 
-  <form action="/logout" method="post">
-    <button type="submit">Logout</button>
-  </form>
+      <form class="photo-upload" action="/dashboard/photo" method="post" enctype="multipart/form-data">
+        <label for="photo">Select a new profile photo (640×640)</label>
+        <input id="photo" type="file" name="photo" accept="image/*" required>
+        <button type="submit">Upload Photo</button>
+      </form>
 
-  <p><a href="/admin">View all users</a></p>
+      <div id="photoPreviewContainer" class="photo-preview" hidden>
+        <h3>Preview</h3>
+        <img id="photoPreview" src="" alt="Photo preview" class="profile-photo">
+      </div>
+    </section>
+
+    <section class="card section-card">
+      <h2>User Information</h2>
+      <ul class="data-list">
+        <li><strong>Email</strong><span><%= user.email %></span></li>
+        <li><strong>Phone</strong><span><%= user.phoneNumber || "-" %></span></li>
+        <li><strong>Role</strong><span><%= user.role %></span></li>
+        <li><strong>Active</strong><span><%= user.isActive ? "Yes" : "No" %></span></li>
+        <li><strong>Created</strong><span><%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></span></li>
+        <li><strong>Updated</strong><span><%= user.updatedAt ? user.updatedAt.toISOString().slice(0, 10) : "-" %></span></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="actions">
+        <form action="/logout" method="post">
+          <button type="submit" class="btn link-button">Logout</button>
+        </form>
+        <a class="btn link-button" href="/admin">View all users</a>
+      </div>
+    </section>
+  </main>
 
   <script>
     (function () {
@@ -68,14 +82,14 @@
         }
 
         if (!file) {
-          previewContainer.style.display = "none";
+          previewContainer.hidden = true;
           previewImg.removeAttribute("src");
           return;
         }
 
         objectUrl = URL.createObjectURL(file);
         previewImg.src = objectUrl;
-        previewContainer.style.display = "block";
+        previewContainer.hidden = false;
       });
 
       window.addEventListener("beforeunload", function () {

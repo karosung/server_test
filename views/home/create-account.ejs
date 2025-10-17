@@ -4,51 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account</title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <h1>Create Account</h1>
+  <main class="app-shell">
+    <section class="card section-card">
+      <header class="page-header">
+        <h1>Create Account</h1>
+        <p>Set up your profile to get started in moments.</p>
+      </header>
 
-  <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
-  <% } %>
+      <% if (error) { %>
+        <p class="message error"><%= error %></p>
+      <% } %>
 
-  <form action="/create-account" method="post">
-    <div>
-      <label for="username">Username</label><br>
-      <input id="username" type="text" name="username" required value="<%= values.username || '' %>">
-    </div>
+      <form action="/create-account" method="post">
+        <div class="form-field">
+          <label for="username">Username</label>
+          <input id="username" type="text" name="username" required value="<%= values.username || '' %>" placeholder="Choose a unique username">
+        </div>
 
-    <div>
-      <label for="email">Email</label><br>
-      <input id="email" type="email" name="email" required value="<%= values.email || '' %>">
-    </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" required value="<%= values.email || '' %>" placeholder="you@example.com">
+        </div>
 
-    <div>
-      <label for="password">Password</label><br>
-      <input id="password" type="password" name="password" required>
-    </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" required placeholder="Create a strong password">
+        </div>
 
-    <div>
-      <label for="fullName">Full Name</label><br>
-      <input id="fullName" type="text" name="fullName" required value="<%= values.fullName || '' %>">
-    </div>
+        <div class="form-field">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" type="text" name="fullName" required value="<%= values.fullName || '' %>" placeholder="Enter your full name">
+        </div>
 
-    <div>
-      <label for="phoneNumber">Phone Number</label><br>
-      <input id="phoneNumber" type="text" name="phoneNumber" value="<%= values.phoneNumber || '' %>">
-    </div>
+        <div class="form-field">
+          <label for="phoneNumber">Phone Number</label>
+          <input id="phoneNumber" type="text" name="phoneNumber" value="<%= values.phoneNumber || '' %>" placeholder="Optional">
+        </div>
 
-    <div>
-      <label for="role">Role</label><br>
-      <select id="role" name="role">
-        <option value="user" <%= (values.role || "user") === "user" ? "selected" : "" %>>User</option>
-        <option value="admin" <%= values.role === "admin" ? "selected" : "" %>>Admin</option>
-      </select>
-    </div>
+        <div class="form-field">
+          <label for="role">Role</label>
+          <select id="role" name="role">
+            <option value="user" <%= (values.role || "user") === "user" ? "selected" : "" %>>User</option>
+            <option value="admin" <%= values.role === "admin" ? "selected" : "" %>>Admin</option>
+          </select>
+        </div>
 
-    <button type="submit">Create</button>
-  </form>
+        <button type="submit">Create Account</button>
+      </form>
 
-  <p><a href="/login">Back to login</a></p>
+      <div class="actions">
+        <a class="btn link-button" href="/login">Back to Login</a>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

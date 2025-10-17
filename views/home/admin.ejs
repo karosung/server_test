@@ -3,47 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Information</title>
+  <title>User Directory</title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <h1>User Information</h1>
-  <table border="1" cellpadding="6">
-    <thead>
-      <tr>
-        <th>Photo</th>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Full Name</th>
-        <th>Phone</th>
-        <th>Role</th>
-        <th>Active</th>
-        <th>Created</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (users.length === 0) { %>
-        <tr><td colspan="8">No users found.</td></tr>
-      <% } else { %>
-        <% users.forEach(user => { %>
-          <tr>
-            <td>
-              <% if (user.avatarDataUrl) { %>
-                <img src="<%= user.avatarDataUrl %>" alt="<%= user.username %> avatar" width="80" height="80" style="object-fit: cover;">
-              <% } else { %>
-                -
-              <% } %>
-            </td>
-            <td><%= user.username %></td>
-            <td><%= user.email %></td>
-            <td><%= user.fullName %></td>
-            <td><%= user.phoneNumber || "-" %></td>
-            <td><%= user.role %></td>
-            <td><%= user.isActive ? "Yes" : "No" %></td>
-            <td><%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></td>
-          </tr>
-        <% }) %>
-      <% } %>
-    </tbody>
-  </table>
+  <main class="app-shell">
+    <section class="card page-header">
+      <h1>User Directory</h1>
+      <p class="muted">Review team accounts at a glance and keep information up to date.</p>
+    </section>
+
+    <section class="card table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Full Name</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Active</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (users.length === 0) { %>
+              <tr><td class="muted" colspan="8">No users found.</td></tr>
+            <% } else { %>
+              <% users.forEach(user => { %>
+                <tr>
+                  <td>
+                    <% if (user.avatarDataUrl) { %>
+                      <img src="<%= user.avatarDataUrl %>" alt="<%= user.username %> avatar" class="avatar">
+                    <% } else { %>
+                      <span class="muted">No photo</span>
+                    <% } %>
+                  </td>
+                  <td><%= user.username %></td>
+                  <td><%= user.email %></td>
+                  <td><%= user.fullName %></td>
+                  <td><%= user.phoneNumber || "-" %></td>
+                  <td><%= user.role %></td>
+                  <td><%= user.isActive ? "Yes" : "No" %></td>
+                  <td><%= user.createdAt ? user.createdAt.toISOString().slice(0, 10) : "-" %></td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

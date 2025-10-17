@@ -1,6 +1,7 @@
 "use strict";
 
 //module
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -22,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change-this-secret",
