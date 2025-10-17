@@ -188,4 +188,77 @@ const uploadPhoto = (req, res, next) => {
   });
 };
 
-module.exports = { renderDashboard, uploadPhoto };
+const removePhoto = async (req, res, next) => {
+  if (!req.session?.user) {
+    logger.warn("Photo delete attempted without session");
+    return res.redirect("/login");
+  }
+
+  const { index } = req.body;
+  const photoIndex = Number.parseInt(index, 10);
+
+  if (Number.isNaN(photoIndex) || photoIndex < 0) {
+    setFlash(req, {
+      type: "error",
+      message: "Invalid photo selection.",
+    });
+    logger.warn("Photo delete failed: invalid index", {
+      userId: req.session.user.id,
+      index,
+    });
+    return res.redirect("/dashboard");
+  }
+
+  try {
+    const user = await User.findById(req.session.user.id);
+
+    if (!user) {
+      setFlash(req, {
+        type: "error",
+        message: "User not found.",
+      });
+      logger.warn("Photo delete failed: user missing", {
+        userId: req.session.user.id,
+      });
+      return res.redirect("/login");
+    }
+
+    ensurePhotosInitialised(user);
+
+    if (photoIndex >= user.photos.length) {
+      setFlash(req, {
+        type: "error",
+        message: "Photo does not exist.",
+      });
+      logger.warn("Photo delete failed: index out of range", {
+        userId: req.session.user.id,
+        index,
+      });
+      return res.redirect("/dashboard");
+    }
+
+    user.photos.splice(photoIndex, 1);
+    await user.save();
+
+    setFlash(req, {
+      type: "success",
+      message: "Photo removed.",
+    });
+
+    logger.info("Profile photo removed", {
+      userId: req.session.user.id,
+      removedIndex: photoIndex,
+      remaining: user.photos.length,
+    });
+
+    res.redirect("/dashboard");
+  } catch (err) {
+    logger.error("Photo delete failed", {
+      userId: req.session.user.id,
+      error: err.message,
+    });
+    next(err);
+  }
+};
+
+module.exports = { renderDashboard, uploadPhoto, removePhoto };

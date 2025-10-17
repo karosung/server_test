@@ -24,7 +24,6 @@
 
     <section class="card section-card">
       <h2>Profile Photos</h2>
-
       <% 
         const totalSlots = typeof maxPhotos === "number" ? maxPhotos : 10;
         const photoList = (photos && Array.isArray(photos)) ? photos : [];
@@ -36,19 +35,31 @@
       %>
 
       <div class="photo-gallery">
-        <div class="photo-main">
-          <% if (avatarDataUrl) { %>
-            <img src="<%= avatarDataUrl %>" alt="Primary profile photo">
+        <div class="photo-main" data-photo-index="0">
+          <% if (photoList.length > 0) { %>
+            <div class="photo-actions">
+              <form class="delete-form" data-role="delete-photo-form" action="/dashboard/photo/delete" method="post">
+                <input type="hidden" name="index" value="0">
+                <button type="submit" class="delete-button" aria-label="Delete primary photo">&minus;</button>
+              </form>
+            </div>
+            <img src="<%= photoList[0] %>" alt="Primary profile photo">
           <% } else { %>
             <div class="photo-placeholder">
               <span>No photos yet</span>
-              <small>Add up to <%= totalSlots %> square images (640×640).</small>
+              <small>Add up to <%= totalSlots %> square images (640x640).</small>
             </div>
           <% } %>
         </div>
         <div class="photo-tiles">
           <% secondaryPhotos.forEach(function(photoUrl, index) { %>
-            <div class="photo-tile">
+            <div class="photo-tile" data-photo-index="<%= index + 1 %>">
+              <div class="photo-actions">
+                <form class="delete-form" data-role="delete-photo-form" action="/dashboard/photo/delete" method="post">
+                  <input type="hidden" name="index" value="<%= index + 1 %>">
+                  <button type="submit" class="delete-button" aria-label="Delete photo <%= index + 2 %>">&minus;</button>
+                </form>
+              </div>
               <img src="<%= photoUrl %>" alt="Profile photo <%= index + 2 %>">
             </div>
           <% }) %>
@@ -63,6 +74,12 @@
             <div class="photo-tile photo-tile--empty"></div>
           <% } %>
         </div>
+      </div>
+      <div class="photo-gallery-footer">
+        <button type="button" class="icon-button" data-role="toggle-delete" aria-pressed="false">
+          <span class="icon">&#128465;</span>
+          <span>Photo delete</span>
+        </button>
       </div>
 
       <form id="photoUploadForm" action="/dashboard/photo" method="post" enctype="multipart/form-data">
@@ -100,21 +117,45 @@
   <script>
     (function () {
       var addTile = document.querySelector("[data-role=\"add-photo\"]");
+      var toggleDeleteButton = document.querySelector("[data-role=\"toggle-delete\"]");
+      var deleteForms = document.querySelectorAll("[data-role=\"delete-photo-form\"]");
+      var gallery = document.querySelector(".photo-gallery");
       var fileInput = document.getElementById("photoUploadInput");
       var form = document.getElementById("photoUploadForm");
+      var deleteMode = false;
 
-      if (!addTile || !fileInput || !form) {
-        return;
+      if (addTile && fileInput && form) {
+        addTile.addEventListener("click", function () {
+          fileInput.click();
+        });
+
+        fileInput.addEventListener("change", function (event) {
+          if (event.target.files && event.target.files.length > 0) {
+            form.submit();
+          }
+        });
       }
 
-      addTile.addEventListener("click", function () {
-        fileInput.click();
-      });
+      if (toggleDeleteButton && gallery) {
+        toggleDeleteButton.addEventListener("click", function () {
+          deleteMode = !deleteMode;
+          toggleDeleteButton.setAttribute("aria-pressed", String(deleteMode));
+          if (deleteMode) {
+            gallery.classList.add("delete-mode");
+            toggleDeleteButton.classList.add("active");
+          } else {
+            gallery.classList.remove("delete-mode");
+            toggleDeleteButton.classList.remove("active");
+          }
+        });
+      }
 
-      fileInput.addEventListener("change", function (event) {
-        if (event.target.files && event.target.files.length > 0) {
-          form.submit();
-        }
+      deleteForms.forEach(function (deleteForm) {
+        deleteForm.addEventListener("submit", function (event) {
+          if (!confirm("Delete this photo?")) {
+            event.preventDefault();
+          }
+        });
       });
     })();
   </script>

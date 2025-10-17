@@ -8,7 +8,11 @@ const {
     renderCreateAccountForm,
     handleCreateAccount,
 } = require("./createAccount");
-const { renderDashboard, uploadPhoto } = require("./dashboard");
+const {
+    renderDashboard,
+    uploadPhoto,
+    removePhoto,
+} = require("./dashboard");
 const {
     renderEditProfileForm,
     handleEditProfile,
@@ -27,6 +31,7 @@ router.get("/login", function(req, res){
 router.post("/login", handleLogin);
 router.get("/dashboard", renderDashboard);
 router.post("/dashboard/photo", uploadPhoto);
+router.post("/dashboard/photo/delete", removePhoto);
 router.get("/profile/edit", renderEditProfileForm);
 router.post("/profile/edit", handleEditProfile);
 router.get("/users/search", renderUserSearch);

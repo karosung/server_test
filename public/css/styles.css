@@ -338,6 +338,12 @@ button:focus,
   align-items: stretch;
 }
 
+.photo-gallery-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .photo-main {
   position: relative;
   width: 100%;
@@ -350,6 +356,21 @@ button:focus,
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.photo-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 2;
+}
+
+.photo-tile .photo-actions {
+  right: 8px;
+  bottom: 8px;
 }
 
 .photo-main img {
@@ -435,6 +456,75 @@ button:focus,
 .photo-tile--empty {
   border: 1px dashed rgba(148, 163, 184, 0.45);
   background: rgba(226, 232, 240, 0.25);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.12);
+  color: #b91c1c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.icon-button:hover,
+.icon-button:focus {
+  transform: translateY(-1px);
+  background: rgba(248, 113, 113, 0.18);
+  box-shadow: 0 14px 24px -18px rgba(248, 113, 113, 0.5);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+}
+
+.icon-button .icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.delete-form {
+  display: none;
+}
+
+.delete-button {
+  border: none;
+  background: rgba(248, 113, 113, 0.95);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 12px 20px -16px rgba(248, 113, 113, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.delete-button:hover,
+.delete-button:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 26px -18px rgba(248, 113, 113, 0.8);
+}
+
+.delete-button:active {
+  transform: translateY(0);
+}
+
+.photo-gallery.delete-mode .delete-form {
+  display: block;
+}
+
+.photo-gallery.delete-mode .add-tile {
+  display: none;
 }
 
 .data-list {
