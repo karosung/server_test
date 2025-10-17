@@ -16,14 +16,7 @@ const upload = multer({
   },
 });
 
-const popFlash = (req) => {
-  if (!req.session) {
-    return undefined;
-  }
-  const flash = req.session.flash;
-  delete req.session.flash;
-  return flash;
-};
+const { popFlash } = require("../../utils/flash");
 
 const buildAvatarDataUrl = (user) => {
   if (!user?.avatarData || !user?.avatarContentType) {
