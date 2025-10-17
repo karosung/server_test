@@ -28,6 +28,20 @@ const buildAvatarDataUrl = (user) => {
 };
 
 const renderAdmin = async (req, res, next) => {
+  if (!req.session?.user) {
+    return res.redirect("/login");
+  }
+
+  if (req.session.user.role !== "admin") {
+    if (req.session) {
+      req.session.flash = {
+        type: "error",
+        message: "Only administrators can view that page.",
+      };
+    }
+    return res.redirect("/dashboard");
+  }
+
   try {
     const rawUsers = await User.find().lean();
     const users = rawUsers.map((user) => ({

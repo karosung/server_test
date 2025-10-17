@@ -57,7 +57,9 @@
         <form action="/logout" method="post">
           <button type="submit" class="btn link-button">Logout</button>
         </form>
-        <a class="btn link-button" href="/admin">View all users</a>
+        <% if (user.role === "admin") { %>
+          <a class="btn link-button" href="/admin">View all users</a>
+        <% } %>
       </div>
     </section>
   </main>
