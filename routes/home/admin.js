@@ -2,24 +2,36 @@
 
 const User = require("../../models/user");
 const logger = require("../../utils/logger");
+const { setFlash } = require("../../utils/flash");
+
+const bufferFrom = (value) => {
+  if (!value) {
+    return null;
+  }
+  if (Buffer.isBuffer(value)) {
+    return value;
+  }
+  if (value.buffer) {
+    return Buffer.from(value.buffer);
+  }
+  if (Array.isArray(value)) {
+    return Buffer.from(value);
+  }
+  if (value.data) {
+    return Buffer.from(value.data);
+  }
+  return null;
+};
 
 const buildAvatarDataUrl = (user) => {
-  if (!user?.avatarData) {
-    return null;
-  }
-
-  const contentType = user.avatarContentType || "image/jpeg";
-  let buffer;
-
-  if (Buffer.isBuffer(user.avatarData)) {
-    buffer = user.avatarData;
-  } else if (user.avatarData?.buffer) {
-    buffer = Buffer.from(user.avatarData.buffer);
-  } else if (Array.isArray(user.avatarData)) {
-    buffer = Buffer.from(user.avatarData);
-  } else {
-    return null;
-  }
+  const primaryPhoto = Array.isArray(user?.photos) && user.photos.length > 0 ? user.photos[0] : null;
+  const contentType =
+    (primaryPhoto && primaryPhoto.contentType) ||
+    user?.avatarContentType ||
+    "image/jpeg";
+  const buffer =
+    bufferFrom(primaryPhoto?.data) ||
+    bufferFrom(user?.avatarData);
 
   if (!buffer || buffer.length === 0) {
     return null;
@@ -42,12 +54,10 @@ const renderAdmin = async (req, res, next) => {
       username: req.session.user.username,
     });
 
-    if (req.session) {
-      req.session.flash = {
-        type: "error",
-        message: "Only administrators can view that page.",
-      };
-    }
+    setFlash(req, {
+      type: "error",
+      message: "Only administrators can view that page.",
+    });
     return res.redirect("/dashboard");
   }
 

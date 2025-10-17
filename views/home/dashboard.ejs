@@ -23,24 +23,51 @@
     </section>
 
     <section class="card section-card">
-      <h2>Profile Photo</h2>
+      <h2>Profile Photos</h2>
 
-      <% if (avatarDataUrl) { %>
-        <img src="<%= avatarDataUrl %>" alt="Profile photo" class="profile-photo">
-      <% } else { %>
-        <p class="muted">No profile photo yet. Upload a square image (640×640) for a crisp display.</p>
-      <% } %>
+      <% 
+        const totalSlots = typeof maxPhotos === "number" ? maxPhotos : 10;
+        const photoList = (photos && Array.isArray(photos)) ? photos : [];
+        const secondaryPhotos = photoList.slice(1);
+        const maxSecondary = Math.max(totalSlots - 1, 0);
+        const remainingSecondarySlots = Math.max(maxSecondary - secondaryPhotos.length, 0);
+        const canAddPhoto = photoList.length < totalSlots;
+        const blankTiles = Math.max(remainingSecondarySlots - (canAddPhoto ? 1 : 0), 0);
+      %>
 
-      <form class="photo-upload" action="/dashboard/photo" method="post" enctype="multipart/form-data">
-        <label for="photo">Select a new profile photo (640×640)</label>
-        <input id="photo" type="file" name="photo" accept="image/*" required>
-        <button type="submit">Upload Photo</button>
-      </form>
+      <div class="photo-gallery">
+        <div class="photo-main">
+          <% if (avatarDataUrl) { %>
+            <img src="<%= avatarDataUrl %>" alt="Primary profile photo">
+          <% } else { %>
+            <div class="photo-placeholder">
+              <span>No photos yet</span>
+              <small>Add up to <%= totalSlots %> square images (640×640).</small>
+            </div>
+          <% } %>
+        </div>
+        <div class="photo-tiles">
+          <% secondaryPhotos.forEach(function(photoUrl, index) { %>
+            <div class="photo-tile">
+              <img src="<%= photoUrl %>" alt="Profile photo <%= index + 2 %>">
+            </div>
+          <% }) %>
 
-      <div id="photoPreviewContainer" class="photo-preview" hidden>
-        <h3>Preview</h3>
-        <img id="photoPreview" src="" alt="Photo preview" class="profile-photo">
+          <% if (canAddPhoto) { %>
+            <button type="button" class="photo-tile add-tile" data-role="add-photo" aria-label="Add another profile photo">
+              <span>+</span>
+            </button>
+          <% } %>
+
+          <% for (let i = 0; i < blankTiles; i++) { %>
+            <div class="photo-tile photo-tile--empty"></div>
+          <% } %>
+        </div>
       </div>
+
+      <form id="photoUploadForm" action="/dashboard/photo" method="post" enctype="multipart/form-data">
+        <input id="photoUploadInput" type="file" name="photo" accept="image/*" hidden>
+      </form>
     </section>
 
     <section class="card section-card">
@@ -72,37 +99,21 @@
 
   <script>
     (function () {
-      var fileInput = document.getElementById("photo");
-      var previewContainer = document.getElementById("photoPreviewContainer");
-      var previewImg = document.getElementById("photoPreview");
-      var objectUrl = null;
+      var addTile = document.querySelector("[data-role=\"add-photo\"]");
+      var fileInput = document.getElementById("photoUploadInput");
+      var form = document.getElementById("photoUploadForm");
 
-      if (!fileInput || !previewContainer || !previewImg) {
+      if (!addTile || !fileInput || !form) {
         return;
       }
 
-      fileInput.addEventListener("change", function (event) {
-        var file = event.target.files && event.target.files[0];
-
-        if (objectUrl) {
-          URL.revokeObjectURL(objectUrl);
-          objectUrl = null;
-        }
-
-        if (!file) {
-          previewContainer.hidden = true;
-          previewImg.removeAttribute("src");
-          return;
-        }
-
-        objectUrl = URL.createObjectURL(file);
-        previewImg.src = objectUrl;
-        previewContainer.hidden = false;
+      addTile.addEventListener("click", function () {
+        fileInput.click();
       });
 
-      window.addEventListener("beforeunload", function () {
-        if (objectUrl) {
-          URL.revokeObjectURL(objectUrl);
+      fileInput.addEventListener("change", function (event) {
+        if (event.target.files && event.target.files.length > 0) {
+          form.submit();
         }
       });
     })();

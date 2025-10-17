@@ -4,7 +4,9 @@ const multer = require("multer");
 const sharp = require("sharp");
 const User = require("../../models/user");
 const logger = require("../../utils/logger");
+const { popFlash, setFlash } = require("../../utils/flash");
 
+const MAX_PHOTOS = 10;
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
@@ -16,15 +18,33 @@ const upload = multer({
   },
 });
 
-const { popFlash } = require("../../utils/flash");
-
-const buildAvatarDataUrl = (user) => {
-  if (!user?.avatarData || !user?.avatarContentType) {
+const photoToDataUrl = (photo) => {
+  if (!photo?.data) {
     return null;
   }
-  return `data:${user.avatarContentType};base64,${user.avatarData.toString(
-    "base64"
-  )}`;
+
+  const contentType = photo.contentType || "image/jpeg";
+  return `data:${contentType};base64,${photo.data.toString("base64")}`;
+};
+
+const ensurePhotosInitialised = (user) => {
+  if (!Array.isArray(user.photos)) {
+    user.photos = [];
+  }
+};
+
+const migrateLegacyAvatarIfNeeded = async (user) => {
+  ensurePhotosInitialised(user);
+  if (user.photos.length === 0 && user.avatarData && user.avatarContentType) {
+    user.photos.push({
+      data: user.avatarData,
+      contentType: user.avatarContentType || "image/jpeg",
+      uploadedAt: new Date(),
+    });
+    user.avatarData = undefined;
+    user.avatarContentType = undefined;
+    await user.save();
+  }
 };
 
 const renderDashboard = async (req, res, next) => {
@@ -34,9 +54,9 @@ const renderDashboard = async (req, res, next) => {
   }
 
   try {
-    const user = await User.findById(req.session.user.id).lean();
+    const userDoc = await User.findById(req.session.user.id);
 
-    if (!user) {
+    if (!userDoc) {
       logger.warn("Dashboard user lookup failed; destroying session", {
         userId: req.session.user.id,
       });
@@ -46,14 +66,25 @@ const renderDashboard = async (req, res, next) => {
       return;
     }
 
+    await migrateLegacyAvatarIfNeeded(userDoc);
+
+    const user = userDoc.toObject();
+    ensurePhotosInitialised(user);
+
+    const photos = user.photos.map(photoToDataUrl).filter(Boolean);
+    const avatarDataUrl = photos[0] || null;
+
     logger.info("Dashboard rendered", {
       userId: user._id.toString(),
       username: user.username,
+      photoCount: photos.length,
     });
 
     res.render("home/dashboard", {
       user,
-      avatarDataUrl: buildAvatarDataUrl(user),
+      avatarDataUrl,
+      photos,
+      maxPhotos: MAX_PHOTOS,
       flash: popFlash(req),
     });
   } catch (err) {
@@ -73,10 +104,10 @@ const uploadPhoto = (req, res, next) => {
 
   upload.single("photo")(req, res, async (err) => {
     if (err) {
-      req.session.flash = {
+      setFlash(req, {
         type: "error",
         message: err.message || "Failed to upload image.",
-      };
+      });
       logger.warn("Photo upload rejected", {
         userId: req.session.user.id,
         error: err.message,
@@ -85,10 +116,10 @@ const uploadPhoto = (req, res, next) => {
     }
 
     if (!req.file) {
-      req.session.flash = {
+      setFlash(req, {
         type: "error",
         message: "Please choose an image to upload.",
-      };
+      });
       logger.warn("Photo upload missing file", {
         userId: req.session.user.id,
       });
@@ -105,28 +136,46 @@ const uploadPhoto = (req, res, next) => {
       const user = await User.findById(req.session.user.id);
 
       if (!user) {
-        req.session.flash = {
+        setFlash(req, {
           type: "error",
           message: "User not found.",
-        };
+        });
         logger.warn("Photo upload failed: user missing during save", {
           userId: req.session.user.id,
         });
         return res.redirect("/login");
       }
 
-      user.avatarData = processedBuffer;
-      user.avatarContentType = "image/jpeg";
+      ensurePhotosInitialised(user);
+
+      if (user.photos.length >= MAX_PHOTOS) {
+        setFlash(req, {
+          type: "error",
+          message: "You have reached the maximum of 10 photos.",
+        });
+        logger.warn("Photo upload rejected: limit reached", {
+          userId: req.session.user.id,
+        });
+        return res.redirect("/dashboard");
+      }
+
+      user.photos.push({
+        data: processedBuffer,
+        contentType: "image/jpeg",
+        uploadedAt: new Date(),
+      });
+
       await user.save();
 
-      req.session.flash = {
+      setFlash(req, {
         type: "success",
-        message: "\uD504\uB85C\uD544 \uC0AC\uC9C4\uC774 \uC5C5\uB370\uC774\uD2B8\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
-      };
-      logger.info("Profile photo updated", {
+        message: "Profile photo added.",
+      });
+      logger.info("Profile photo added", {
         userId: req.session.user.id,
         filename: req.file.originalname,
         size: req.file.size,
+        newCount: user.photos.length,
       });
       res.redirect("/dashboard");
     } catch (uploadErr) {

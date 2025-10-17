@@ -19,6 +19,16 @@ const userSchema = new schema(
     isActive: { type: Boolean, default: true },
     avatarData: { type: Buffer },
     avatarContentType: { type: String },
+    photos: {
+      type: [
+        {
+          data: { type: Buffer, required: true },
+          contentType: { type: String, required: true },
+          uploadedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

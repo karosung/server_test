@@ -124,10 +124,10 @@ const handleEditProfile = async (req, res, next) => {
       logger.warn("Profile update failed: user missing after update", {
         userId: user._id.toString(),
       });
-      req.session.flash = {
+      setFlash(req, {
         type: "error",
         message: "Unable to update profile. Please log in again.",
-      };
+      });
       req.session.destroy(() => res.redirect("/login"));
       return;
     }

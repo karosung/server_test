@@ -4,36 +4,41 @@ const mongoose = require("mongoose");
 const User = require("../../models/user");
 const Friendship = require("../../models/friendship");
 const logger = require("../../utils/logger");
+const { popFlash, setFlash } = require("../../utils/flash");
 
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const popFlash = (req) => {
-  if (!req.session) {
-    return undefined;
+const bufferFrom = (value) => {
+  if (!value) {
+    return null;
   }
-  const flash = req.session.flash;
-  delete req.session.flash;
-  return flash;
+  if (Buffer.isBuffer(value)) {
+    return value;
+  }
+  if (value.buffer) {
+    return Buffer.from(value.buffer);
+  }
+  if (Array.isArray(value)) {
+    return Buffer.from(value);
+  }
+  if (value.data) {
+    return Buffer.from(value.data);
+  }
+  return null;
 };
 
 const buildAvatarDataUrl = (user) => {
-  if (!user?.avatarData) {
-    return null;
-  }
-
-  const contentType = user.avatarContentType || "image/jpeg";
-  let buffer;
-
-  if (Buffer.isBuffer(user.avatarData)) {
-    buffer = user.avatarData;
-  } else if (user.avatarData?.buffer) {
-    buffer = Buffer.from(user.avatarData.buffer);
-  } else if (Array.isArray(user.avatarData)) {
-    buffer = Buffer.from(user.avatarData);
-  } else {
-    return null;
-  }
+  const primaryPhoto =
+    Array.isArray(user?.photos) && user.photos.length > 0
+      ? user.photos[0]
+      : null;
+  const contentType =
+    (primaryPhoto && primaryPhoto.contentType) ||
+    user?.avatarContentType ||
+    "image/jpeg";
+  const buffer =
+    bufferFrom(primaryPhoto?.data) || bufferFrom(user?.avatarData);
 
   if (!buffer || buffer.length === 0) {
     return null;
@@ -129,12 +134,10 @@ const addFriend = async (req, res, next) => {
   const currentUserId = req.session.user.id;
 
   if (!friendId || !mongoose.Types.ObjectId.isValid(friendId)) {
-    if (req.session) {
-      req.session.flash = {
-        type: "error",
-        message: "Invalid friend request.",
-      };
-    }
+    setFlash(req, {
+      type: "error",
+      message: "Invalid friend request.",
+    });
     logger.warn("Friend add failed: invalid friend id", {
       userId: currentUserId,
       friendId,
@@ -143,10 +146,10 @@ const addFriend = async (req, res, next) => {
   }
 
   if (friendId === currentUserId) {
-    req.session.flash = {
+    setFlash(req, {
       type: "error",
       message: "You cannot add yourself as a friend.",
-    };
+    });
     logger.warn("Friend add failed: self addition", {
       userId: currentUserId,
     });
@@ -157,10 +160,10 @@ const addFriend = async (req, res, next) => {
     const friendUser = await User.findById(friendId).lean();
 
     if (!friendUser) {
-      req.session.flash = {
+      setFlash(req, {
         type: "error",
         message: "User not found.",
-      };
+      });
       logger.warn("Friend add failed: target not found", {
         userId: currentUserId,
         friendId,
@@ -174,20 +177,20 @@ const addFriend = async (req, res, next) => {
         friend: friendId,
       });
 
-      req.session.flash = {
+      setFlash(req, {
         type: "success",
         message: `${friendUser.fullName || friendUser.username} has been added to your friends.`,
-      };
+      });
       logger.info("Friend added", {
         userId: currentUserId,
         friendId,
       });
     } catch (err) {
       if (err.code === 11000) {
-        req.session.flash = {
+        setFlash(req, {
           type: "error",
           message: "You are already friends.",
-        };
+        });
         logger.warn("Friend add skipped: already friends", {
           userId: currentUserId,
           friendId,
