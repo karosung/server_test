@@ -1,6 +1,7 @@
 "use strict";
 
 const Friendship = require("../../models/friendship");
+const logger = require("../../utils/logger");
 
 const buildAvatarDataUrl = (user) => {
   if (!user?.avatarData) {
@@ -29,6 +30,7 @@ const buildAvatarDataUrl = (user) => {
 
 const renderFriends = async (req, res, next) => {
   if (!req.session?.user) {
+    logger.warn("Friends page requested without session");
     return res.redirect("/login");
   }
 
@@ -49,10 +51,19 @@ const renderFriends = async (req, res, next) => {
         avatarDataUrl: buildAvatarDataUrl(friend),
       }));
 
+    logger.info("Friends list rendered", {
+      userId: req.session.user.id,
+      friendCount: friends.length,
+    });
+
     res.render("home/friends", {
       friends,
     });
   } catch (err) {
+    logger.error("Failed to render friends list", {
+      userId: req.session.user.id,
+      error: err.message,
+    });
     next(err);
   }
 };

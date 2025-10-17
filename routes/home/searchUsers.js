@@ -3,6 +3,7 @@
 const mongoose = require("mongoose");
 const User = require("../../models/user");
 const Friendship = require("../../models/friendship");
+const logger = require("../../utils/logger");
 
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,6 +44,7 @@ const buildAvatarDataUrl = (user) => {
 
 const renderUserSearch = async (req, res, next) => {
   if (!req.session?.user) {
+    logger.warn("User search requested without session");
     return res.redirect("/login");
   }
 
@@ -51,6 +53,9 @@ const renderUserSearch = async (req, res, next) => {
   const hasSearched = query.length > 0;
 
   if (!hasSearched) {
+    logger.info("User search page viewed without query", {
+      userId: req.session.user.id,
+    });
     return res.render("home/user-search", {
       query: "",
       hasSearched: false,
@@ -91,6 +96,12 @@ const renderUserSearch = async (req, res, next) => {
       };
     });
 
+    logger.info("User search performed", {
+      userId: currentUserId,
+      query,
+      resultCount: users.length,
+    });
+
     res.render("home/user-search", {
       query,
       hasSearched: true,
@@ -98,12 +109,18 @@ const renderUserSearch = async (req, res, next) => {
       flash,
     });
   } catch (err) {
+    logger.error("User search failed", {
+      userId: req.session.user.id,
+      query,
+      error: err.message,
+    });
     next(err);
   }
 };
 
 const addFriend = async (req, res, next) => {
   if (!req.session?.user) {
+    logger.warn("Friend add attempted without session");
     return res.redirect("/login");
   }
 
@@ -118,6 +135,10 @@ const addFriend = async (req, res, next) => {
         message: "Invalid friend request.",
       };
     }
+    logger.warn("Friend add failed: invalid friend id", {
+      userId: currentUserId,
+      friendId,
+    });
     return res.redirect(redirectUrl);
   }
 
@@ -126,6 +147,9 @@ const addFriend = async (req, res, next) => {
       type: "error",
       message: "You cannot add yourself as a friend.",
     };
+    logger.warn("Friend add failed: self addition", {
+      userId: currentUserId,
+    });
     return res.redirect(redirectUrl);
   }
 
@@ -137,6 +161,10 @@ const addFriend = async (req, res, next) => {
         type: "error",
         message: "User not found.",
       };
+      logger.warn("Friend add failed: target not found", {
+        userId: currentUserId,
+        friendId,
+      });
       return res.redirect(redirectUrl);
     }
 
@@ -150,12 +178,20 @@ const addFriend = async (req, res, next) => {
         type: "success",
         message: `${friendUser.fullName || friendUser.username} has been added to your friends.`,
       };
+      logger.info("Friend added", {
+        userId: currentUserId,
+        friendId,
+      });
     } catch (err) {
       if (err.code === 11000) {
         req.session.flash = {
           type: "error",
           message: "You are already friends.",
         };
+        logger.warn("Friend add skipped: already friends", {
+          userId: currentUserId,
+          friendId,
+        });
       } else {
         throw err;
       }
@@ -163,6 +199,11 @@ const addFriend = async (req, res, next) => {
 
     return res.redirect(redirectUrl);
   } catch (err) {
+    logger.error("Friend add failed", {
+      userId: currentUserId,
+      friendId,
+      error: err.message,
+    });
     next(err);
   }
 };

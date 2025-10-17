@@ -1,6 +1,7 @@
 "use strict";
 
 const User = require("../../models/user");
+const logger = require("../../utils/logger");
 
 const buildAvatarDataUrl = (user) => {
   if (!user?.avatarData) {
@@ -29,10 +30,18 @@ const buildAvatarDataUrl = (user) => {
 
 const renderAdmin = async (req, res, next) => {
   if (!req.session?.user) {
+    logger.warn("Admin page requested without session", {
+      url: req.originalUrl,
+    });
     return res.redirect("/login");
   }
 
   if (req.session.user.role !== "admin") {
+    logger.warn("Admin page access denied", {
+      userId: req.session.user.id,
+      username: req.session.user.username,
+    });
+
     if (req.session) {
       req.session.flash = {
         type: "error",
@@ -48,8 +57,18 @@ const renderAdmin = async (req, res, next) => {
       ...user,
       avatarDataUrl: buildAvatarDataUrl(user),
     }));
+
+    logger.info("Admin directory rendered", {
+      adminId: req.session.user.id,
+      userCount: users.length,
+    });
+
     res.render("home/admin", { users });
   } catch (err) {
+    logger.error("Failed to render admin directory", {
+      adminId: req.session.user.id,
+      error: err.message,
+    });
     next(err);
   }
 };

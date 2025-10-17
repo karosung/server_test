@@ -8,6 +8,7 @@
     "express-session": "^1.18.2",
     "mongoose": "^8.19.1",
     "multer": "^2.0.2",
-    "sharp": "^0.34.4"
+    "sharp": "^0.34.4",
+    "winston": "^3.18.3"
   }
 }
